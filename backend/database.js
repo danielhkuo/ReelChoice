@@ -7,6 +7,9 @@ const db = new sqlite3.Database('./watch_party.db', (err) => {
         console.error('Error opening database', err.message);
     } else {
         console.log('Connected to the SQLite database.');
+
+        // Enable foreign key support
+        db.run('PRAGMA foreign_keys = ON');
     }
 });
 

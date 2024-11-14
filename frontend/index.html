@@ -2,20 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
     <title>Create a Party</title>
 </head>
 <body>
 <h1>Create a Watch Party</h1>
 <form id="createPartyForm">
     <label for="partyName">Party Name:</label>
-    <input type="text" id="partyName" name="partyName" required>
+    <input id="partyName" name="partyName" required type="text">
 
     <label for="adminName">Admin Name:</label>
-    <input type="text" id="adminName" name="adminName" required>
+    <input id="adminName" name="adminName" required type="text">
 
     <label for="password">Password:</label>
-    <input type="password" id="password" name="password">
+    <input id="password" name="password" type="password">
 
     <button type="submit">Create Party</button>
 </form>
@@ -34,7 +34,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ name: partyName, adminName: adminName, password: password })
+                body: JSON.stringify({name: partyName, adminName: adminName, password: password})
             });
 
             const result = await response.json();
@@ -45,5 +45,13 @@
         }
     });
 </script>
+
+<h2>Rank Movies</h2>
+<div id="movieList">
+    <!-- Movie list will be dynamically populated here -->
+</div>
+<button disabled id="submitVote">Submit Vote</button>
+
+
 </body>
 </html>
