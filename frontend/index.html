@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create a Party</title>
+</head>
+<body>
+<h1>Create a Watch Party</h1>
+<form id="createPartyForm">
+    <label for="partyName">Party Name:</label>
+    <input type="text" id="partyName" name="partyName" required>
+
+    <label for="adminName">Admin Name:</label>
+    <input type="text" id="adminName" name="adminName" required>
+
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password">
+
+    <button type="submit">Create Party</button>
+</form>
+
+<script>
+    document.getElementById('createPartyForm').addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        const partyName = document.getElementById('partyName').value;
+        const adminName = document.getElementById('adminName').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const response = await fetch('http://localhost:3000/create-party', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name: partyName, adminName: adminName, password: password })
+            });
+
+            const result = await response.json();
+            alert(result.message || 'Party created successfully!');
+        } catch (error) {
+            console.error('Error creating party:', error);
+            alert('Failed to create party.');
+        }
+    });
+</script>
+</body>
+</html>
