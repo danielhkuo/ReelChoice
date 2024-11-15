@@ -2,27 +2,66 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Create a Party</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<h1>Create a Watch Party</h1>
-<form id="createPartyForm">
-    <label for="partyName">Party Name:</label>
-    <input id="partyName" name="partyName" required type="text">
+<header>
+    <h1>Create a Watch Party</h1>
+</header>
+<main>
+    <section class="form-section">
+        <form id="createPartyForm" class="form-style" novalidate>
+            <label for="partyName">Party Name:</label>
+            <input id="partyName" name="partyName" required type="text" aria-describedby="partyNameDesc" pattern="[A-Za-z0-9\s]+" title="Only letters, numbers, and spaces are allowed.">
+            <small id="partyNameDesc">Enter a unique name for your party.</small>
 
-    <label for="adminName">Admin Name:</label>
-    <input id="adminName" name="adminName" required type="text">
+            <label for="adminName">Admin Name:</label>
+            <input id="adminName" name="adminName" required type="text" autocomplete="name">
 
-    <label for="password">Password:</label>
-    <input id="password" name="password" type="password">
+            <label for="password">Password:</label>
+            <input id="password" name="password" type="password" autocomplete="new-password">
+            <meter id="passwordStrength" min="0" max="4" value="0"></meter>
+            <small>Password strength will appear here.</small>
 
-    <button type="submit">Create Party</button>
-</form>
+            <button type="submit" class="btn-primary">Create Party</button>
+        </form>
+    </section>
+
+    <section class="movie-section">
+        <h2>Rank Movies</h2>
+        <div id="movieList" aria-live="polite">
+            <!-- Movie list will be dynamically populated here -->
+        </div>
+        <button disabled id="submitVote" class="btn-secondary">Submit Vote</button>
+    </section>
+</main>
 
 <script>
+    // Password strength indicator
+    document.getElementById('password').addEventListener('input', (event) => {
+        const strength = calculateStrength(event.target.value);
+        document.getElementById('passwordStrength').value = strength;
+    });
+
+    function calculateStrength(password) {
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/\d/.test(password)) score++;
+        if (/[!@#$%^&*]/.test(password)) score++;
+        return Math.min(score, 4);
+    }
+
+    // Form submission event
     document.getElementById('createPartyForm').addEventListener('submit', async (event) => {
         event.preventDefault();
+        if (!event.target.checkValidity()) {
+            alert('Please fill in all fields correctly.');
+            return;
+        }
 
         const partyName = document.getElementById('partyName').value;
         const adminName = document.getElementById('adminName').value;
@@ -31,12 +70,11 @@
         try {
             const response = await fetch('http://localhost:3000/create-party', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({name: partyName, adminName: adminName, password: password})
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: partyName, adminName, password })
             });
 
+            if (!response.ok) throw new Error(`Server error: ${response.statusText}`);
             const result = await response.json();
             alert(result.message || 'Party created successfully!');
         } catch (error) {
@@ -45,13 +83,5 @@
         }
     });
 </script>
-
-<h2>Rank Movies</h2>
-<div id="movieList">
-    <!-- Movie list will be dynamically populated here -->
-</div>
-<button disabled id="submitVote">Submit Vote</button>
-
-
 </body>
 </html>
