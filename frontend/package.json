@@ -1,5 +1,5 @@
 {
-  "name": "minor-mercury",
+  "name": "red-remnant",
   "type": "module",
   "version": "0.0.1",
   "scripts": {
@@ -9,6 +9,11 @@
     "astro": "astro"
   },
   "dependencies": {
-    "astro": "^5.9.1"
+    "@astrojs/react": "^4.3.0",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.6",
+    "astro": "^5.9.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   }
 }
