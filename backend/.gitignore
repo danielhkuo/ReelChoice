@@ -1,0 +1,22 @@
+# Compiled binary
+# If your main package is 'main', the executable will be named after the directory
+# or you can specify it with 'go build -o <name>'
+backend
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test-related files
+*.test
+*.out
+coverage.out
+profile.out
+
+# Environment variables file
+# IMPORTANT: Contains secrets, must not be committed.
+.env
+
+# Go vendor directory
+vendor/

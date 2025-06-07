@@ -13,24 +13,20 @@ This project is a monorepo, with the frontend and backend code living in separat
 
 ```
 /reelchoice/
-├── .gitignore          # A single gitignore for the whole project
+├── .gitignore          # Ignores OS/editor-specific files
 ├── README.md           # Project-level instructions
 │
 ├── /backend/           # All Go code
+│   ├── .gitignore      # Go-specific ignores (binaries, .env)
 │   ├── main.go         # Backend server entry point
 │   ├── go.mod          # Go module definition
-│   ├── go.sum          # Go module checksums
-│   ├── /api/           # API route handlers
-│   └── /websocket/     # WebSocket connection logic
+│   └── ...
 │
 └── /frontend/          # All Astro + React code
+    ├── .gitignore      # Node.js-specific ignores (node_modules, dist)
     ├── package.json
     ├── astro.config.mjs  # Astro configuration
-    ├── /public/          # Static assets (images, fonts)
-    └── /src/
-        ├── /components/  # Interactive React components (.jsx)
-        ├── /layouts/     # Astro page layouts (.astro)
-        └── /pages/       # Astro pages (.astro)
+    └── ...
 ```
 
 ## System Architecture
