@@ -103,6 +103,91 @@ npm run dev
 ```
 The frontend will be available at `http://localhost:5173`. API requests to `/api` are automatically proxied to the backend at `http://localhost:8080` via the `vite.config.js` settings.
 
+## Development Status & Features
+
+### ✅ Completed Features
+
+#### Backend Infrastructure
+- **REST API Endpoints:**
+  - `POST /api/party` - Create a new party
+  - `GET /api/party/{id}` - Get party information
+  - `POST /api/party/{id}/join` - Join a party with username
+  - `GET /api/test` - Health check endpoint
+
+- **WebSocket Real-Time Communication:**
+  - WebSocket hub for managing client connections
+  - Participant join/leave notifications
+  - Message broadcasting to party members
+  - Ping/pong heartbeat system
+
+- **Data Models:**
+  - Party management with states (lobby, nomination, voting, completed)
+  - Participant tracking with host designation
+  - Thread-safe operations (temporary in-memory storage)
+
+#### Frontend Implementation
+- **Home Page (`/`):** Party creation interface with modern UI
+- **Party Page (`/party/[id]`):** Real-time lobby with participant management
+- **Diagnostic Tool (`/diagnostic`):** Backend testing interface
+- **Components:**
+  - `ParticipantList` - Real-time participant display
+  - Join modal for username selection
+  - Responsive design with mobile support
+
+#### Phase 1: Foundation - Party Creation & Lobby ✅
+- ✅ Users can create new parties via REST API
+- ✅ Parties are stored with unique IDs and host designation
+- ✅ Users can join parties by entering a username
+- ✅ Real-time participant list updates via WebSocket
+- ✅ Host badge displays for party creators
+- ✅ Responsive UI with modern design
+- ✅ Error handling and loading states
+
+### 🚧 In Development
+
+#### Phase 2: Movie Nomination (Next)
+- Movie search integration with TMDB API
+- Nomination submission and management
+- Real-time nomination updates
+- Vote on nominations (Yay/Nay)
+
+#### Phase 3: Ranked Choice Voting
+- RCV ballot creation
+- Vote collection and tallying
+- Results calculation and display
+
+### 🔧 Diagnostic Tool
+
+A comprehensive diagnostic tool is available at `/diagnostic` to test backend functionality:
+
+- **API Testing:** Validates REST endpoints and party creation
+- **WebSocket Testing:** Tests real-time communication
+- **Connection Monitoring:** Shows connection status and message logs
+- **Ping/Pong Testing:** Verifies bidirectional communication
+
+**Usage:** Start both backend (`go run main.go`) and frontend (`npm run dev`), then visit `http://localhost:5173/diagnostic`
+
+## API Documentation
+
+### Endpoints
+
+| Method | Endpoint | Description | Request Body | Response |
+|--------|----------|-------------|--------------|----------|
+| `POST` | `/api/party` | Create new party | `{"name": "string"}` | Party object with ID |
+| `GET` | `/api/party/{id}` | Get party info | - | Party object with participants |
+| `POST` | `/api/party/{id}/join` | Join party | `{"username": "string"}` | Participant + updated party |
+| `GET` | `/api/test` | Health check | - | `{"status": "ok", "message": "..."}` |
+
+### WebSocket Messages
+
+| Type | Direction | Data | Description |
+|------|-----------|------|-------------|
+| `ping` | Client → Server | `"ping"` | Heartbeat request |
+| `pong` | Server → Client | `"pong"` | Heartbeat response |
+| `user_joined` | Client → Server | Party object | Notify others of new participant |
+| `participant_update` | Server → Client | Party object | Broadcast participant changes |
+| `test` | Bidirectional | Any | Diagnostic testing |
+
 ## Contributing
 
 We welcome contributions! Please feel free to submit a Pull Request or open an issue for bugs, feature requests, or questions.
