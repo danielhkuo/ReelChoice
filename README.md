@@ -1,44 +1,35 @@
+
 # ReelChoice
 
-Welcome to ReelChoice! This project is a collaborative movie selection tool built on a modern, high-performance stack:
+![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg) ![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![Svelte](https://img.shields.io/badge/Svelte-4-orange) ![Go](https://img.shields.io/badge/Go-1.21-blue)
 
-*   **Frontend:** [Astro](https://astro.build/) with [React](https://react.dev/) for interactive UI components.
-*   **Backend:** [Go](https://go.dev/) for a fast, concurrent, and reliable API.
+ReelChoice is a real-time, collaborative movie selection tool designed to end the "what should we watch?" debate. It provides a democratic, two-phase process for groups to nominate and rank movie choices, ensuring everyone's preference is counted.
 
-This combination provides an incredibly fast-loading user experience thanks to Astro's static-first approach, with dynamic, real-time features powered by React "islands" and a robust Go backend.
+## Key Features
 
-## Project Structure
+*   **Real-Time Collaboration:** See suggestions, votes, and results appear instantly without refreshing the page, powered by WebSockets.
+*   **Two-Phase Selection:**
+    1.  **Nomination Phase:** Anyone can suggest a movie. The group votes "Yay" or "Nay" to decide if it makes the final ballot.
+    2.  **Ranking Phase:** Using the nominated movies, participants use Ranked-Choice Voting (RCV) to order their preferences.
+*   **Ranked-Choice Voting (RCV):** A fair voting system that finds the most agreeable choice, even with diverse tastes.
+*   **Host-Led Sessions:** A party "Host" controls the flow, deciding when to finalize nominations and start the final vote.
+*   **Secure & Private:** Parties can be protected with an optional password.
 
-This project is a monorepo, with the frontend and backend code living in separate directories but managed in the same repository. This simplifies development, versioning, and deployment.
+## Tech Stack & Architecture
 
-```
-/reelchoice/
-├── .gitignore          # Ignores OS/editor-specific files
-├── README.md           # Project-level instructions
-│
-├── /backend/           # All Go code
-│   ├── .gitignore      # Go-specific ignores (binaries, .env)
-│   ├── main.go         # Backend server entry point
-│   ├── go.mod          # Go module definition
-│   └── ...
-│
-└── /frontend/          # All Astro + React code
-    ├── .gitignore      # Node.js-specific ignores (node_modules, dist)
-    ├── package.json
-    ├── astro.config.mjs  # Astro configuration
-    └── ...
-```
+ReelChoice uses a modern, decoupled architecture for high performance and scalability.
 
-## System Architecture
-
-The ReelChoice application is built on a decoupled, real-time architecture designed for performance and scalability. The frontend client communicates with the backend Go service, which acts as the central hub for all logic, state management, and data persistence.
+*   **Frontend:** **SvelteKit** for a fast, compiled, and truly reactive user interface.
+*   **Backend:** **Go** for a high-performance, concurrent API and WebSocket server.
+*   **Real-Time State:** **Redis** for managing the ephemeral state of active parties (votes, participants) and for caching.
+*   **Persistent Storage:** **PostgreSQL** for storing long-term data like party metadata and final results.
 
 ```
 +--------------------+   HTTP/S (REST API)   +----------------------+
 |                    |---------------------->|                      |
 |  Client Browser    |                       |                      |
-| (Astro with React  |<----------------------|   Go Backend Service |
-|      Islands)      |  WebSocket Messages   |                      |
+| (SvelteKit Frontend)|<----------------------|   Go Backend Service |
+|                    |  WebSocket Messages   |                      |
 |                    |                       |                      |
 +--------------------+                       +----------+-----------+
                                                         |
@@ -48,114 +39,80 @@ The ReelChoice application is built on a decoupled, real-time architecture desig
               |                                  |         |                                  |
               |  PostgreSQL Database             |         |  Redis                           |
               |  (Persistent Storage)            |         |  (Real-Time State & Cache)       |
-              |                                  |         |                                  |
-              |  - Party Metadata (name, etc.)   |         |  - Active Party State (JSON)     |
-              |  - Final Winning Movie           |         |  - Live Vote Counts              |
-              |                                  |         |  - TMDB API Response Cache       |
               +----------------------------------+         +----------------------------------+
 ```
 
-### Component Breakdown
+## Production Deployment
 
-*   **Frontend (Astro + React):** The user-facing application.
-    *   **Astro** is used to build the static "shell" of the pages (layouts, non-interactive content). This results in extremely fast initial page loads.
-    *   **React** "islands" are used for all interactive components (the nomination queue, voting buttons, ranking list). These components hydrate on the client-side to manage dynamic UI and communicate with the backend.
-
-*   **Backend (Go):** The single source of truth for the application. It serves two primary roles:
-    1.  **REST API Server:** Exposes standard HTTP endpoints for non-real-time actions like creating a new party or searching for a movie.
-    2.  **WebSocket Hub:** Manages persistent WebSocket connections for each active party. When a user takes an action (like voting), the backend updates the state and broadcasts the new state to all clients in that party.
-
-*   **PostgreSQL Database:** This is our system for **data at rest**. It stores long-term, persistent information that needs to survive server restarts.
-    *   **Examples:** Party details (name, creation date), final winning movie results. It does *not* store every single nomination vote, as that is ephemeral.
-
-*   **Redis:** This is our high-speed system for **data in motion**. It is used for managing the ephemeral, real-time state of active parties and for caching.
-    *   **Live State:** The entire state of an active party (participants, nominations, current vote, phase) is stored as a single object in Redis. This allows for incredibly fast reads and writes.
-    *   **Caching:** Backend search requests to the external TMDB API are cached in Redis to improve speed and avoid hitting rate limits.
-    *   **Pub/Sub (for scaling):** Redis's Pub/Sub capabilities can be used to broadcast messages between multiple backend server instances if the application needs to scale horizontally.
-
-*   **TheMovieDB (TMDB) API:** This is the external service used to fetch movie data. The Go backend acts as a **proxy** for all TMDB requests. The client **never** communicates directly with TMDB; this protects the API key and allows our backend to implement efficient caching.
-
-## Getting Started
-
-Follow these steps to get the development environment running on your local machine.
+This application is designed to be deployed using containers.
 
 ### Prerequisites
 
-Before you begin, ensure you have the following installed:
-*   [Go](https://go.dev/doc/install) (version 1.20 or newer)
-*   [Node.js](https://nodejs.org/en) (version 18 or newer)
+*   [Docker](https://www.docker.com/) & [Docker Compose](https://docs.docker.com/compose/)
+*   A registered API key from [TheMovieDB (TMDB)](https://www.themoviedb.org/documentation/api).
 
-### 1. Backend Setup (Go)
+### Configuration
 
-First, set up and run the Go API server.
+Before building, create a `.env` file in the project root by copying `.env.example`.
 
-1.  **Navigate to the backend directory:**
-    ```bash
-    cd backend
-    ```
-
-2.  **Install Dependencies:** This command syncs the dependencies listed in the `go.mod` file.
-    ```bash
-    go mod tidy
-    ```
-
-3.  **Run the Server:**
-    ```bash
-    go run main.go
-    ```
-    The backend server will start and listen on `http://localhost:8080`.
-
-    > **Note for Go developers:** For a better development experience with hot-reloading, consider using a tool like [Air](https://github.com/cosmtrek/air).
-
-### 2. Frontend Setup (Astro + React)
-
-Next, set up the Astro frontend in a separate terminal.
-
-1.  **Navigate to the frontend directory:**
-    *(From the project root)*
-    ```bash
-    cd frontend
-    ```
-
-2.  **Install Dependencies:**
-    ```bash
-    npm install
-    ```
-
-3.  **Run the Development Server:**
-    ```bash
-    npm run dev
-    ```
-    The frontend development server will be available at `http://localhost:4321`. It includes Hot Module Replacement (HMR) for a fast feedback loop.
-
-### 3. Connecting Frontend & Backend (Proxy)
-
-During development, the Astro frontend (`:4321`) and Go backend (`:8080`) run on different ports. To avoid browser CORS (Cross-Origin Resource Sharing) errors, the Astro dev server is configured to proxy API requests.
-
-The `frontend/astro.config.mjs` file contains a proxy rule:
-
-```javascript
-// frontend/astro.config.mjs
-import { defineConfig } from 'astro/config';
-import react from '@astrojs/react';
-
-export default defineConfig({
-  integrations: [react()],
-  server: {
-    proxy: {
-      // Proxy all /api requests to the Go backend
-      '/api': 'http://localhost:8080',
-    }
-  }
-});
+**`/backend/.env`**
+```
+# Port for the Go server to listen on
+PORT=8080
+# Full connection string for your PostgreSQL database
+DATABASE_URL="postgres://user:password@host:port/dbname"
+# Full connection string for your Redis instance
+REDIS_URL="redis://user:password@host:port/0"
+# Your secret API key from TMDB
+TMDB_API_KEY="your_tmdb_api_key_here"
 ```
 
-This configuration means you don't need to change anything. It's already set up for you.
+### Running with Docker Compose
 
-## How to Run
+The included `docker-compose.yml` file will build the production images for the frontend and backend, and run them alongside Postgres and Redis services.
 
-With both servers running, you can now start development:
+1.  **Configure Environment:** Ensure your `.env` files in `/backend` are correctly configured.
+2.  **Build and Run:**
+    ```bash
+    docker-compose up --build
+    ```
+3.  The frontend will be accessible at `http://localhost:80` (or the port you map).
 
-1.  **Open your browser** to `http://localhost:4321`.
-2.  Any `fetch` requests made from your React components to an endpoint like `/api/party` will be correctly forwarded to your Go backend.
-3.  You're all set! Start building your components in `/frontend/src/components` and your API logic in `/backend/api`.
+## Development Setup
+
+For local development without containers:
+
+### Prerequisites
+*   Go (v1.20+)
+*   Node.js (v18+)
+*   Running instances of PostgreSQL and Redis.
+
+### 1. Backend
+```bash
+cd backend
+go mod tidy
+# Create a .env file with your local dev credentials
+go run main.go
+```
+
+### 2. Frontend
+```bash
+cd frontend
+npm install
+npm run dev
+```
+The frontend will be available at `http://localhost:5173`. API requests to `/api` are automatically proxied to the backend at `http://localhost:8080` via the `vite.config.js` settings.
+
+## Contributing
+
+We welcome contributions! Please feel free to submit a Pull Request or open an issue for bugs, feature requests, or questions.
+
+1.  Fork the repository.
+2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  Push to the branch (`git push origin feature/AmazingFeature`).
+5.  Open a Pull Request.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
